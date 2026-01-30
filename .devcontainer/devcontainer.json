@@ -1,0 +1,25 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+{
+	"name": "Prolog Development Container",
+	"build": {
+		"dockerfile": "Dockerfile" 
+	},
+
+	"customizations": {
+		"vscode": {
+			"settings": {},
+			"extensions": [
+				"streetsidesoftware.code-spell-checker",
+				"Anthropic.claude-code"
+			]
+		}
+	},
+
+	"runArgs": [
+		"--name", "larjmodel_devcontainer"
+	],
+
+	"postCreateCommand": "sh .devcontainer/installation.sh",
+	"remoteUser": "vscode"
+}
