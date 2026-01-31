@@ -10,16 +10,19 @@
 		"vscode": {
 			"settings": {},
 			"extensions": [
-				"streetsidesoftware.code-spell-checker",
 				"Anthropic.claude-code"
 			]
 		}
 	},
 
+	"initializeCommand": "sh -c 'if [ ! -f .devcontainer/.env_devcontainer ]; then cp .devcontainer/.env_devcontainer.example .devcontainer/.env_devcontainer; fi'",
+
 	"runArgs": [
-		"--name", "larjmodel_devcontainer"
+		"--name", "larjmodel_devcontainer",
+		"--env-file", "${localWorkspaceFolder}/.devcontainer/.env_devcontainer"
 	],
 
+	"appPort": ["2204:22"],
 	"postCreateCommand": "sh .devcontainer/installation.sh",
 	"remoteUser": "vscode"
 }
