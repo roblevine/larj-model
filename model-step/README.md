@@ -68,6 +68,150 @@ cd model-step
 dot -Tpng output/model.dot -o output/model.png
 ```
 
+## CLI Tool: Generate Models from Markdown
+
+A Python CLI tool that uses Claude to automatically generate DDD domain models from markdown descriptions.
+
+### Prerequisites
+
+- **Python 3.10+**
+- **SWI-Prolog 8.0+** - for model validation
+- **Graphviz** (optional) - for rendering diagrams
+- **Anthropic API key** - for Claude access
+
+### Setup
+
+1. Install Python dependencies:
+
+```bash
+cd model-step
+pip install -r cli/requirements.txt
+```
+
+2. Create a `.env` file in `model-step/` with your Anthropic API key:
+
+```bash
+cp .env.example .env
+# Edit .env and add your API key
+```
+
+The `.env` file should contain:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+ANTHROPIC_MODEL=claude-opus-4-20250514
+```
+
+### Usage
+
+From the `model-step` directory:
+
+```bash
+# Basic usage - generate model from markdown
+python cli/ddd_model.py path/to/domain.md
+
+# Specify model name and output location
+python cli/ddd_model.py domain.md --name my_model --output output/my_model.pl
+
+# Verbose output showing Claude interaction
+python cli/ddd_model.py domain.md --verbose
+
+# Output only the Prolog code to stdout (no files created)
+python cli/ddd_model.py domain.md --prolog-only
+
+# Skip visualization (just generate Prolog file)
+python cli/ddd_model.py domain.md --no-visualize
+
+# Skip validation
+python cli/ddd_model.py domain.md --no-validate
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `-o, --output PATH` | Output Prolog file path |
+| `-n, --name NAME` | Model name (default: derived from filename) |
+| `-v, --visualize` | Generate Graphviz visualizations (default: yes) |
+| `-V, --no-visualize` | Skip visualization |
+| `--validate/--no-validate` | Run model validation (default: yes) |
+| `--verbose` | Show verbose output |
+| `--prolog-only` | Only output Prolog code to stdout |
+
+### Example Workflow
+
+1. Create a markdown file describing your domain (`hotel_booking.md`):
+
+```markdown
+# Hotel Booking System
+
+## Domain Overview
+A hotel booking system where guests make reservations for rooms.
+
+## Key Concepts
+- Guests can be individuals or corporate accounts
+- Rooms are categorized by type (single, double, suite)
+- Each room type has standard rates and amenities
+- Reservations track check-in/check-out dates and status
+- Reservations can be pending, confirmed, checked-in, or cancelled
+
+## Business Rules
+- A reservation must have at least one guest
+- Room availability must be checked before confirming
+- Cancellation policies vary by room type
+```
+
+2. Generate the model:
+
+```bash
+python cli/ddd_model.py hotel_booking.md --verbose
+```
+
+3. Output files generated:
+
+```
+output/
+├── hotel_booking_model.pl      # Prolog domain model
+├── hotel_booking.dot           # Graphviz DOT source
+├── hotel_booking.png           # Model diagram (color-coded)
+├── hotel_booking.svg           # Model diagram (scalable)
+├── hotel_booking_context_map.dot
+└── hotel_booking_context_map.png
+```
+
+4. The generated Prolog model can be:
+   - Loaded into SWI-Prolog for querying
+   - Validated with completeness checks
+   - Exported to other formats
+   - Used as a basis for implementation
+
+### What the Tool Does
+
+1. **Reads** your markdown domain description
+2. **Sends** it to Claude with DDD-specific prompts
+3. **Receives** generated Prolog model code using four-archetype classification
+4. **Saves** the `.pl` file to the output directory
+5. **Validates** the model using Prolog (checks links, archetypes, etc.)
+6. **Generates** Graphviz visualizations with color-coded archetypes
+
+### Troubleshooting
+
+**"ANTHROPIC_API_KEY not found"**
+- Ensure `.env` file exists in `model-step/` directory
+- Check the key is correctly formatted (starts with `sk-ant-`)
+
+**"SWI-Prolog (swipl) not found"**
+- Install SWI-Prolog: `brew install swi-prolog` (macOS) or `apt install swi-prolog` (Linux)
+
+**"Graphviz (dot) not found"**
+- Install Graphviz: `brew install graphviz` (macOS) or `apt install graphviz` (Linux)
+- Visualizations will be skipped if not installed
+
+**Model validation fails**
+- Check the generated `.pl` file for syntax errors
+- Run with `--verbose` to see detailed output
+- The model may need manual adjustment for complex domains
+
 ## Running Tests
 
 ```bash
@@ -502,6 +646,11 @@ See `examples/ecommerce_model.pl` for a complete example with:
 
 ```
 model-step/
+├── cli/                    # Python CLI tool
+│   ├── ddd_model.py        # Main CLI entry point
+│   ├── prompts.py          # Claude prompt templates
+│   ├── prolog_runner.py    # Prolog interface
+│   └── requirements.txt    # Python dependencies
 ├── src/
 │   ├── ddd_schema.pl       # Core schema (40+ predicates)
 │   ├── model_builder.pl    # High-level DSL
@@ -517,6 +666,8 @@ model-step/
 ├── scripts/
 │   └── run_tests.sh        # Test runner
 ├── output/                 # Generated artifacts
+├── .env                    # API keys (git-ignored)
+├── .env.example            # Environment template
 ├── README.md               # This file
 ├── SPEC.md                 # SDD specification
 ├── DDD.md                  # DDD methodology guide
