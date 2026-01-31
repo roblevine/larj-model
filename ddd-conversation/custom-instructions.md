@@ -95,7 +95,15 @@ If any answer suggests boundary friction, start a tentative bounded context sket
 - Use tables where precision matters (rules, mappings, glossary).
 - Put Mermaid diagrams in fenced code blocks.
 - When something is unknown, record it explicitly under **Open Questions / Parking Lot**.
-
+- Include actors + commands + events; add policies/decisions as they emerge.
+- Keep dashed edges for policies/decision-driven branches.
+- Maintain ONE canonical “End-to-End Event Storm (LR)” Mermaid diagram.
+  - The diagram MUST have a single left-to-right time spine:
+    `C1 --> E1 --> C2 --> E2 --> ...`
+  - Actors MUST connect to commands using dashed links only (responsibility), and MUST NOT create a separate vertical “stack” of commands.
+  - When adding a new step, always insert it into the time spine in the correct chronological position.
+  - Tables (events/commands/rules) elaborate the spine; they do not replace it.
+  
 # Canonical Session Document (Mandatory)
 - You are continuously maintaining **one living session document** as the source of truth.
 - That document must follow the section structure and tables from `ddd-conversation/session-template.md`.

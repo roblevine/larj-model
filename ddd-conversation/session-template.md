@@ -51,6 +51,25 @@ flowchart LR
   P1 -.-> C2[Command]:::command
 ```
 
+## Event Storm – End-to-End (Living Diagram)  ✅ CANONICAL
+
+This is the *primary* narrative artefact for the session. It must read strictly left-to-right as a single time axis.
+
+**Hard rules (non-negotiable):**
+- Use `flowchart LR`.
+- The happy-path MUST be a single chained sequence:
+  `Command → Event → Command → Event → …` (one horizontal timeline).
+- Commands MUST be connected to the previous event (or start node) so they appear **in sequence**, not stacked.
+- Actors MUST NOT form their own “vertical” command list:
+  - Show actor responsibility via **dashed** links to commands, *off the time axis*.
+- Decisions (branches) MUST sit on the time axis and branch from an event.
+- Add unhappy paths as branches off the relevant event/decision, but keep the main spine intact.
+
+```mermaid
+flowchart LR
+  %% (maintained incrementally)
+
+
 | Event Name (SME wording) | Model Event Name | When it happens | Trigger (Actor / Command) |
 |--------------------------|------------------|-----------------|---------------------------|
 |                      |                  |                 |                           |
