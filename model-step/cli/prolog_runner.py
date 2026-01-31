@@ -43,14 +43,16 @@ class PrologRunner:
 
     def load_and_build_model(self, model_file: Path, model_name: str) -> tuple[bool, str]:
         """Load a model file and build the model."""
-        # Convert to relative path from model_step_dir
-        rel_path = model_file.relative_to(self.model_step_dir)
+        # Resolve to absolute path, then convert to relative from model_step_dir
+        abs_path = model_file.resolve()
+        rel_path = abs_path.relative_to(self.model_step_dir)
         goal = f"['{rel_path}'], build_model, halt(0)"
         return self.run_prolog(goal)
 
     def validate_model(self, model_file: Path) -> tuple[bool, str]:
         """Run validation on a loaded model."""
-        rel_path = model_file.relative_to(self.model_step_dir)
+        abs_path = model_file.resolve()
+        rel_path = abs_path.relative_to(self.model_step_dir)
         goal = f"""
             ['{rel_path}'],
             [src/model_validate],
@@ -63,8 +65,10 @@ class PrologRunner:
 
     def generate_dot(self, model_file: Path, model_name: str, output_file: Path) -> tuple[bool, str]:
         """Generate DOT visualization file."""
-        rel_model = model_file.relative_to(self.model_step_dir)
-        rel_output = output_file.relative_to(self.model_step_dir)
+        abs_model = model_file.resolve()
+        abs_output = output_file.resolve()
+        rel_model = abs_model.relative_to(self.model_step_dir)
+        rel_output = abs_output.relative_to(self.model_step_dir)
         goal = f"""
             ['{rel_model}'],
             [src/model_visualize],
@@ -76,8 +80,10 @@ class PrologRunner:
 
     def generate_context_map(self, model_file: Path, model_name: str, output_file: Path) -> tuple[bool, str]:
         """Generate context map DOT file."""
-        rel_model = model_file.relative_to(self.model_step_dir)
-        rel_output = output_file.relative_to(self.model_step_dir)
+        abs_model = model_file.resolve()
+        abs_output = output_file.resolve()
+        rel_model = abs_model.relative_to(self.model_step_dir)
+        rel_output = abs_output.relative_to(self.model_step_dir)
         goal = f"""
             ['{rel_model}'],
             [src/model_visualize],
