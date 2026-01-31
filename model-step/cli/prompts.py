@@ -126,7 +126,10 @@ CRITICAL RULES:
 - ALWAYS use `add_aggregate_member/2` (not add_aggregate_component)
 - Every role must have a player via `link_role_to_player/2`
 - Every role should participate in at least one MI via `link_role_to_mi/2`
-- Descriptions link to PPTs, not directly to Moment-Intervals
+- IMPORTANT: `link_ppt_to_description(PPTId, DescId)` - ONLY links Parties/Things to Descriptions
+  - The first argument MUST be a party_place_thing (defined via define_party, define_place, or define_thing)
+  - NEVER use it with roles or moment-intervals
+  - Example: link_ppt_to_description(customer, customer_tier) where customer is a party
 """
 
 USER_PROMPT_TEMPLATE = """Analyze the following domain description and generate a complete Prolog domain model.

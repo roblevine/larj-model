@@ -73,29 +73,37 @@ generate_dot(ModelName, DotCode) :-
 %    - show_attributes(true/false)  : Show attribute compartments (default: true)
 %    - show_behaviours(true/false)  : Show behaviour compartments (default: true)
 %    - show_aggregates(true/false)  : Show aggregate boundaries (default: true)
+%    - show_contexts(true/false)    : Show bounded context groupings (default: true)
 %    - rankdir(TB/LR/BT/RL)        : Graph direction (default: TB)
 generate_dot(ModelName, DotCode, Options) :-
     option_default(show_attributes, Options, true, ShowAttrs),
     option_default(show_behaviours, Options, true, ShowBehavs),
     option_default(show_aggregates, Options, true, ShowAggs),
+    option_default(show_contexts, Options, true, ShowContexts),
     option_default(rankdir, Options, 'TB', RankDir),
 
     % Generate header
     format(atom(Header), 'digraph "~w" {~n', [ModelName]),
-    format(atom(GraphAttrs), '  rankdir=~w;~n  node [shape=record, fontname="Helvetica", fontsize=10];~n  edge [fontname="Helvetica", fontsize=9];~n  labelloc="t";~n  label="Domain Model: ~w";~n~n', [RankDir, ModelName]),
+    format(atom(GraphAttrs), '  rankdir=~w;~n  compound=true;~n  node [shape=record, fontname="Helvetica", fontsize=10];~n  edge [fontname="Helvetica", fontsize=9];~n  labelloc="t";~n  label="Domain Model: ~w";~n~n', [RankDir, ModelName]),
 
     % Generate legend
     generate_legend(Legend),
 
-    % Generate nodes by archetype
-    generate_mi_nodes(ShowAttrs, ShowBehavs, MINodes),
-    generate_role_nodes(ShowAttrs, ShowBehavs, RoleNodes),
-    generate_ppt_nodes(ShowAttrs, ShowBehavs, PPTNodes),
-    generate_desc_nodes(ShowAttrs, ShowBehavs, DescNodes),
-    generate_service_nodes(ServiceNodes),
+    % Generate nodes grouped by bounded context if requested
+    (ShowContexts == true ->
+        generate_context_subgraphs(ShowAttrs, ShowBehavs, ContextSubgraphs),
+        MINodes = '', RoleNodes = '', PPTNodes = '', DescNodes = '', ServiceNodes = ''
+    ;
+        ContextSubgraphs = '',
+        generate_mi_nodes(ShowAttrs, ShowBehavs, MINodes),
+        generate_role_nodes(ShowAttrs, ShowBehavs, RoleNodes),
+        generate_ppt_nodes(ShowAttrs, ShowBehavs, PPTNodes),
+        generate_desc_nodes(ShowAttrs, ShowBehavs, DescNodes),
+        generate_service_nodes(ServiceNodes)
+    ),
 
-    % Generate aggregate subgraphs if requested
-    (ShowAggs == true ->
+    % Generate aggregate subgraphs if requested (only when not using context grouping)
+    (ShowAggs == true, ShowContexts == false ->
         generate_aggregate_subgraphs(AggSubgraphs)
     ;
         AggSubgraphs = ''
@@ -109,17 +117,13 @@ generate_dot(ModelName, DotCode, Options) :-
         Header,
         GraphAttrs,
         Legend,
-        '\n  // Moment-Intervals (Pink)\n',
+        '\n  // Bounded Contexts\n',
+        ContextSubgraphs,
         MINodes,
-        '\n  // Roles (Yellow)\n',
         RoleNodes,
-        '\n  // Parties/Places/Things (Green)\n',
         PPTNodes,
-        '\n  // Descriptions (Blue)\n',
         DescNodes,
-        '\n  // Services\n',
         ServiceNodes,
-        '\n  // Aggregates\n',
         AggSubgraphs,
         '\n  // Relationships\n',
         Relationships,
@@ -299,7 +303,135 @@ format_item(Suffix, Item, Formatted) :-
     format(atom(Formatted), '~w~w', [Item, Suffix]).
 
 %% --------------------------------------------------------------------------
-%% Aggregate Subgraphs
+%% Bounded Context Subgraphs
+%% --------------------------------------------------------------------------
+
+%% generate_context_subgraphs(+ShowAttrs, +ShowBehavs, -Subgraphs) is det
+%
+%  Generates DOT subgraphs for each bounded context, grouping all objects.
+generate_context_subgraphs(ShowAttrs, ShowBehavs, Subgraphs) :-
+    findall(SubgraphCode, (
+        bounded_context(ContextId, ContextName, Scope),
+        generate_single_context_subgraph(ContextId, ContextName, Scope, ShowAttrs, ShowBehavs, SubgraphCode)
+    ), SubgraphCodes),
+    atomic_list_concat(SubgraphCodes, Subgraphs).
+
+generate_single_context_subgraph(ContextId, ContextName, Scope, ShowAttrs, ShowBehavs, SubgraphCode) :-
+    % Determine context colour based on domain classification
+    context_fill_colour(ContextId, FillCol),
+    context_border_colour(ContextId, BorderCol),
+
+    % Generate all nodes for this context
+    findall(NodeCode, (
+        moment_interval(Id, ContextId),
+        generate_class_node(Id, moment_interval, ShowAttrs, ShowBehavs, NodeCode)
+    ), MINodes),
+    findall(NodeCode, (
+        role(Id, ContextId),
+        generate_class_node(Id, role, ShowAttrs, ShowBehavs, NodeCode)
+    ), RoleNodes),
+    findall(NodeCode, (
+        party_place_thing(Id, ContextId),
+        generate_class_node(Id, party_place_thing, ShowAttrs, ShowBehavs, NodeCode)
+    ), PPTNodes),
+    findall(NodeCode, (
+        description(Id, ContextId),
+        generate_class_node(Id, description, ShowAttrs, ShowBehavs, NodeCode)
+    ), DescNodes),
+    findall(NodeCode, (
+        domain_service(Id, ContextId),
+        generate_service_node(Id, NodeCode)
+    ), ServiceNodes),
+
+    atomic_list_concat(MINodes, MINodesStr),
+    atomic_list_concat(RoleNodes, RoleNodesStr),
+    atomic_list_concat(PPTNodes, PPTNodesStr),
+    atomic_list_concat(DescNodes, DescNodesStr),
+    atomic_list_concat(ServiceNodes, ServiceNodesStr),
+
+    % Generate aggregates within this context
+    findall(AggCode, (
+        aggregate(AggId, ContextId),
+        generate_inline_aggregate(AggId, AggCode)
+    ), AggCodes),
+    atomic_list_concat(AggCodes, AggsStr),
+
+    format(atom(SubgraphCode), '
+  subgraph cluster_ctx_~w {
+    label="~w\\n[~w]";
+    fontsize=14;
+    fontname="Helvetica-Bold";
+    style="rounded,filled";
+    color="~w";
+    bgcolor="~w";
+    penwidth=2;
+
+    // Moment-Intervals
+~w
+    // Roles
+~w
+    // Entities
+~w
+    // Descriptions
+~w
+    // Services
+~w
+    // Aggregates
+~w  }
+', [ContextId, ContextName, Scope, BorderCol, FillCol,
+    MINodesStr, RoleNodesStr, PPTNodesStr, DescNodesStr, ServiceNodesStr, AggsStr]).
+
+%% context_fill_colour(+ContextId, -Colour) is det
+%  Returns fill colour based on domain classification.
+context_fill_colour(ContextId, '#FFF8DC') :-  % Cornsilk (core)
+    core_domain(ContextId), !.
+context_fill_colour(ContextId, '#F0FFF0') :-  % Honeydew (supporting)
+    supporting_domain(ContextId), !.
+context_fill_colour(ContextId, '#F5F5F5') :-  % White smoke (generic)
+    generic_domain(ContextId), !.
+context_fill_colour(_, '#FAFAFA').            % Default light grey
+
+%% context_border_colour(+ContextId, -Colour) is det
+context_border_colour(ContextId, '#DAA520') :-  % Goldenrod (core)
+    core_domain(ContextId), !.
+context_border_colour(ContextId, '#2E8B57') :-  % Sea green (supporting)
+    supporting_domain(ContextId), !.
+context_border_colour(ContextId, '#708090') :-  % Slate gray (generic)
+    generic_domain(ContextId), !.
+context_border_colour(_, '#A9A9A9').            % Default dark grey
+
+%% generate_inline_aggregate(+AggId, -Code) is det
+%  Generates a note-style representation of aggregate invariants.
+generate_inline_aggregate(AggId, Code) :-
+    aggregate_root(AggId, RootId),
+    findall(Inv, aggregate_invariant(AggId, Inv), Invariants),
+    (Invariants \= [] ->
+        format_invariants(Invariants, InvStr),
+        format(atom(Code), '    ~w_invariants [label="~w invariants:\\l~w", shape=note, style=filled, fillcolor="#FFFACD", fontsize=8];~n    ~w_invariants -> ~w [style=dotted, arrowhead=none];~n',
+            [AggId, AggId, InvStr, AggId, RootId])
+    ;
+        Code = ''
+    ).
+
+format_invariants([], '').
+format_invariants([H|T], Str) :-
+    format_invariants(T, Rest),
+    format(atom(Str), '• ~w\\l~w', [H, Rest]).
+
+%% generate_service_node(+Id, -NodeCode) is det
+generate_service_node(Id, NodeCode) :-
+    archetype_colour(service, SvcCol),
+    archetype_border(service, SvcBorder),
+    findall(Op, (
+        service_operation(Id, Op, _),
+        Op \= description
+    ), Ops),
+    format_list_items(Ops, '()', OpsStr),
+    format(atom(NodeCode), '    ~w [label="{\\<\\<service\\>\\>\\n~w|~w}", style=filled, fillcolor="~w", color="~w"];~n',
+        [Id, Id, OpsStr, SvcCol, SvcBorder]).
+
+%% --------------------------------------------------------------------------
+%% Aggregate Subgraphs (standalone, when contexts not shown)
 %% --------------------------------------------------------------------------
 
 generate_aggregate_subgraphs(Subgraphs) :-
@@ -333,45 +465,73 @@ format_aggregate_members(Members, Str) :-
 %% --------------------------------------------------------------------------
 
 generate_relationships(Relationships) :-
-    % Description -> PPT (describes)
+    % Description -> PPT (instanceOf - the PPT is an instance of this type/category)
     findall(Edge, (
         ppt_described_by(PPTId, DescId),
-        format(atom(Edge), '  ~w -> ~w [label="describes", style=dashed, arrowhead=open];~n', [DescId, PPTId])
+        format(atom(Edge), '  ~w -> ~w [label="«instanceOf»", style=dashed, arrowhead=empty];~n', [PPTId, DescId])
     ), DescEdges),
 
-    % PPT -> Role (plays)
+    % PPT -> Role (implements - the entity implements this role/interface)
     findall(Edge, (
         ppt_plays_role(PPTId, RoleId),
-        format(atom(Edge), '  ~w -> ~w [label="plays", arrowhead=open];~n', [PPTId, RoleId])
+        format(atom(Edge), '  ~w -> ~w [label="«implements»", style=dashed, arrowhead=empty];~n', [PPTId, RoleId])
     ), PlaysEdges),
 
-    % Role -> MI (participates in)
+    % Role -> MI (handles - the role handles/processes this event)
     findall(Edge, (
         role_participates_in(RoleId, MIId),
-        format(atom(Edge), '  ~w -> ~w [label="participates", arrowhead=open];~n', [RoleId, MIId])
+        format(atom(Edge), '  ~w -> ~w [label="handles", arrowhead=vee];~n', [RoleId, MIId])
     ), ParticipatesEdges),
 
-    % MI -> MI-Detail (contains)
+    % MI -> MI-Detail (composition - the MI contains these details)
     findall(Edge, (
         mi_detail(MIId, DetailId, _),
-        format(atom(Edge), '  ~w -> ~w [label="contains", arrowhead=diamond, style=bold];~n', [MIId, DetailId])
+        format(atom(Edge), '  ~w -> ~w [arrowhead=diamond, style=bold, label="1..*"];~n', [MIId, DetailId])
     ), ContainsEdges),
 
-    % MI -> MI (plan/actual)
+    % MI -> MI (generates/triggers)
     findall(Edge, (
         mi_plan_actual(PlanId, ActualId, Type),
-        format(atom(Edge), '  ~w -> ~w [label="~w", style=dashed, arrowhead=vee];~n', [PlanId, ActualId, Type])
+        plan_actual_label(Type, Label),
+        format(atom(Edge), '  ~w -> ~w [label="~w", style=dashed, arrowhead=vee];~n', [PlanId, ActualId, Label])
     ), PlanActualEdges),
 
-    % Service -> Objects (coordinates)
+    % Service -> Objects (uses - the service uses these objects)
     findall(Edge, (
         service_coordinates(SvcId, ObjId),
-        format(atom(Edge), '  ~w -> ~w [label="coordinates", style=dotted, arrowhead=open];~n', [SvcId, ObjId])
+        format(atom(Edge), '  ~w -> ~w [label="«uses»", style=dotted, arrowhead=open];~n', [SvcId, ObjId])
     ), ServiceEdges),
 
+    % Context relationships (inter-context dependencies)
+    findall(Edge, (
+        context_relationship(UpCtx, DownCtx, Pattern, _),
+        relationship_style(Pattern, Style, Label),
+        % Connect using representative nodes from each context
+        find_context_representative(UpCtx, UpNode),
+        find_context_representative(DownCtx, DownNode),
+        format(atom(Edge), '  ~w -> ~w [label="~w", ~w, ltail=cluster_ctx_~w, lhead=cluster_ctx_~w];~n',
+            [UpNode, DownNode, Label, Style, UpCtx, DownCtx])
+    ), ContextEdges),
+
     % Combine all edges
-    append([DescEdges, PlaysEdges, ParticipatesEdges, ContainsEdges, PlanActualEdges, ServiceEdges], AllEdges),
+    append([DescEdges, PlaysEdges, ParticipatesEdges, ContainsEdges, PlanActualEdges, ServiceEdges, ContextEdges], AllEdges),
     atomic_list_concat(AllEdges, Relationships).
+
+%% plan_actual_label(+Type, -Label) is det
+%  Maps plan/actual relationship types to standard OO terminology.
+plan_actual_label(plan_to_actual, 'generates').
+plan_actual_label(prior_to_next, 'triggers').
+plan_actual_label(generates, 'produces').
+
+%% find_context_representative(+ContextId, -NodeId) is det
+%  Finds a representative node from a context for inter-context edges.
+find_context_representative(ContextId, NodeId) :-
+    (moment_interval(NodeId, ContextId) -> true
+    ; role(NodeId, ContextId) -> true
+    ; party_place_thing(NodeId, ContextId) -> true
+    ; description(NodeId, ContextId) -> true
+    ; NodeId = ContextId  % Fallback to context ID itself
+    ), !.
 
 %% --------------------------------------------------------------------------
 %% Context-Specific Visualization
