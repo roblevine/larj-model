@@ -70,36 +70,60 @@ dot -Tpng output/model.dot -o output/model.png
 
 ## CLI Tool: Generate Models from Markdown
 
-A Python CLI tool that uses Claude to automatically generate domain models from markdown descriptions.
+A Python CLI tool that uses Claude to automatically generate DDD domain models from markdown descriptions.
+
+### Prerequisites
+
+- **Python 3.10+**
+- **SWI-Prolog 8.0+** - for model validation
+- **Graphviz** (optional) - for rendering diagrams
+- **Anthropic API key** - for Claude access
 
 ### Setup
 
+1. Install Python dependencies:
+
 ```bash
-cd model-step/cli
-pip install -r requirements.txt
+cd model-step
+pip install -r cli/requirements.txt
 ```
 
-Create a `.env` file in `model-step/` with your Anthropic API key (see `.env.example`):
+2. Create a `.env` file in `model-step/` with your Anthropic API key:
 
 ```bash
-ANTHROPIC_API_KEY=your-key-here
+cp .env.example .env
+# Edit .env and add your API key
+```
+
+The `.env` file should contain:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
 ANTHROPIC_MODEL=claude-opus-4-20250514
 ```
 
 ### Usage
 
+From the `model-step` directory:
+
 ```bash
-# Generate model from markdown file
-python cli/ddd_model.py domain_description.md
+# Basic usage - generate model from markdown
+python cli/ddd_model.py path/to/domain.md
 
-# With options
-python cli/ddd_model.py domain.md --name my_model --verbose
+# Specify model name and output location
+python cli/ddd_model.py domain.md --name my_model --output output/my_model.pl
 
-# Output only the Prolog code (no files)
+# Verbose output showing Claude interaction
+python cli/ddd_model.py domain.md --verbose
+
+# Output only the Prolog code to stdout (no files created)
 python cli/ddd_model.py domain.md --prolog-only
 
-# Skip visualization
+# Skip visualization (just generate Prolog file)
 python cli/ddd_model.py domain.md --no-visualize
+
+# Skip validation
+python cli/ddd_model.py domain.md --no-validate
 ```
 
 ### Options
@@ -107,36 +131,86 @@ python cli/ddd_model.py domain.md --no-visualize
 | Option | Description |
 |--------|-------------|
 | `-o, --output PATH` | Output Prolog file path |
-| `-n, --name NAME` | Model name (default: from filename) |
-| `-v, --visualize` | Generate Graphviz visualizations (default) |
+| `-n, --name NAME` | Model name (default: derived from filename) |
+| `-v, --visualize` | Generate Graphviz visualizations (default: yes) |
 | `-V, --no-visualize` | Skip visualization |
-| `--validate/--no-validate` | Run model validation |
+| `--validate/--no-validate` | Run model validation (default: yes) |
 | `--verbose` | Show verbose output |
-| `--prolog-only` | Only output Prolog code |
+| `--prolog-only` | Only output Prolog code to stdout |
 
-### Example
+### Example Workflow
 
-Given a markdown file `hotel_booking.md`:
+1. Create a markdown file describing your domain (`hotel_booking.md`):
 
 ```markdown
 # Hotel Booking System
 
-Guests make reservations for rooms. Each room has a room type
-(single, double, suite) with standard rates. Reservations track
-check-in and check-out dates. Guests can be individuals or companies.
+## Domain Overview
+A hotel booking system where guests make reservations for rooms.
+
+## Key Concepts
+- Guests can be individuals or corporate accounts
+- Rooms are categorized by type (single, double, suite)
+- Each room type has standard rates and amenities
+- Reservations track check-in/check-out dates and status
+- Reservations can be pending, confirmed, checked-in, or cancelled
+
+## Business Rules
+- A reservation must have at least one guest
+- Room availability must be checked before confirming
+- Cancellation policies vary by room type
 ```
 
-Run:
+2. Generate the model:
 
 ```bash
 python cli/ddd_model.py hotel_booking.md --verbose
 ```
 
-Output:
-- `output/hotel_booking_model.pl` - Generated Prolog model
-- `output/hotel_booking.dot` - Graphviz DOT file
-- `output/hotel_booking.png` - Model diagram
-- `output/hotel_booking_context_map.dot` - Context map
+3. Output files generated:
+
+```
+output/
+├── hotel_booking_model.pl      # Prolog domain model
+├── hotel_booking.dot           # Graphviz DOT source
+├── hotel_booking.png           # Model diagram (color-coded)
+├── hotel_booking.svg           # Model diagram (scalable)
+├── hotel_booking_context_map.dot
+└── hotel_booking_context_map.png
+```
+
+4. The generated Prolog model can be:
+   - Loaded into SWI-Prolog for querying
+   - Validated with completeness checks
+   - Exported to other formats
+   - Used as a basis for implementation
+
+### What the Tool Does
+
+1. **Reads** your markdown domain description
+2. **Sends** it to Claude with DDD-specific prompts
+3. **Receives** generated Prolog model code using four-archetype classification
+4. **Saves** the `.pl` file to the output directory
+5. **Validates** the model using Prolog (checks links, archetypes, etc.)
+6. **Generates** Graphviz visualizations with color-coded archetypes
+
+### Troubleshooting
+
+**"ANTHROPIC_API_KEY not found"**
+- Ensure `.env` file exists in `model-step/` directory
+- Check the key is correctly formatted (starts with `sk-ant-`)
+
+**"SWI-Prolog (swipl) not found"**
+- Install SWI-Prolog: `brew install swi-prolog` (macOS) or `apt install swi-prolog` (Linux)
+
+**"Graphviz (dot) not found"**
+- Install Graphviz: `brew install graphviz` (macOS) or `apt install graphviz` (Linux)
+- Visualizations will be skipped if not installed
+
+**Model validation fails**
+- Check the generated `.pl` file for syntax errors
+- Run with `--verbose` to see detailed output
+- The model may need manual adjustment for complex domains
 
 ## Running Tests
 
