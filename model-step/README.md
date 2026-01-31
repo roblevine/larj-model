@@ -68,6 +68,76 @@ cd model-step
 dot -Tpng output/model.dot -o output/model.png
 ```
 
+## CLI Tool: Generate Models from Markdown
+
+A Python CLI tool that uses Claude to automatically generate domain models from markdown descriptions.
+
+### Setup
+
+```bash
+cd model-step/cli
+pip install -r requirements.txt
+```
+
+Create a `.env` file in `model-step/` with your Anthropic API key (see `.env.example`):
+
+```bash
+ANTHROPIC_API_KEY=your-key-here
+ANTHROPIC_MODEL=claude-opus-4-20250514
+```
+
+### Usage
+
+```bash
+# Generate model from markdown file
+python cli/ddd_model.py domain_description.md
+
+# With options
+python cli/ddd_model.py domain.md --name my_model --verbose
+
+# Output only the Prolog code (no files)
+python cli/ddd_model.py domain.md --prolog-only
+
+# Skip visualization
+python cli/ddd_model.py domain.md --no-visualize
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `-o, --output PATH` | Output Prolog file path |
+| `-n, --name NAME` | Model name (default: from filename) |
+| `-v, --visualize` | Generate Graphviz visualizations (default) |
+| `-V, --no-visualize` | Skip visualization |
+| `--validate/--no-validate` | Run model validation |
+| `--verbose` | Show verbose output |
+| `--prolog-only` | Only output Prolog code |
+
+### Example
+
+Given a markdown file `hotel_booking.md`:
+
+```markdown
+# Hotel Booking System
+
+Guests make reservations for rooms. Each room has a room type
+(single, double, suite) with standard rates. Reservations track
+check-in and check-out dates. Guests can be individuals or companies.
+```
+
+Run:
+
+```bash
+python cli/ddd_model.py hotel_booking.md --verbose
+```
+
+Output:
+- `output/hotel_booking_model.pl` - Generated Prolog model
+- `output/hotel_booking.dot` - Graphviz DOT file
+- `output/hotel_booking.png` - Model diagram
+- `output/hotel_booking_context_map.dot` - Context map
+
 ## Running Tests
 
 ```bash
@@ -502,6 +572,11 @@ See `examples/ecommerce_model.pl` for a complete example with:
 
 ```
 model-step/
+├── cli/                    # Python CLI tool
+│   ├── ddd_model.py        # Main CLI entry point
+│   ├── prompts.py          # Claude prompt templates
+│   ├── prolog_runner.py    # Prolog interface
+│   └── requirements.txt    # Python dependencies
 ├── src/
 │   ├── ddd_schema.pl       # Core schema (40+ predicates)
 │   ├── model_builder.pl    # High-level DSL
@@ -517,6 +592,8 @@ model-step/
 ├── scripts/
 │   └── run_tests.sh        # Test runner
 ├── output/                 # Generated artifacts
+├── .env                    # API keys (git-ignored)
+├── .env.example            # Environment template
 ├── README.md               # This file
 ├── SPEC.md                 # SDD specification
 ├── DDD.md                  # DDD methodology guide
