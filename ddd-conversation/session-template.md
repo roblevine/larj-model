@@ -64,6 +64,7 @@ This is the *primary* narrative artefact for the session. It must read strictly 
   - Show actor responsibility via **dashed** links to commands, *off the time axis*.
 - Decisions (branches) MUST sit on the time axis and branch from an event.
 - Add unhappy paths as branches off the relevant event/decision, but keep the main spine intact.
+- Anti-pattern to avoid: multiple commands pointing from an actor without being chained from prior events (this implies simultaneity).
 
 ```mermaid
 flowchart LR
