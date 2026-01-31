@@ -214,12 +214,54 @@ output/
 
 ## Running Tests
 
+### Prolog Tests
+
 ```bash
-./scripts/run_tests.sh              # Run all tests
+./scripts/run_tests.sh              # Run all Prolog tests
 ./scripts/run_tests.sh --visualize  # Also generate PNG/SVG
 ```
 
 Or directly in Prolog:
+
+```prolog
+?- [test/test_schema], run_tests.
+?- [test/test_requirements], run_tests.
+```
+
+### CLI Tests (Python)
+
+```bash
+cd cli
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pytest tests/ -v
+```
+
+Test coverage:
+- **test_prompts.py** - Prompt template validation (10 tests)
+- **test_prolog_runner.py** - Prolog execution interface (14 tests)
+- **test_cli.py** - CLI argument parsing and workflow (16 tests)
+- **test_e2e.py** - End-to-end integration tests (9 tests)
+
+Run specific test categories:
+
+```bash
+pytest tests/test_prompts.py -v      # Prompt tests only
+pytest tests/test_e2e.py -v          # E2E tests only
+pytest -m "not slow" -v              # Skip slow tests (live API)
+```
+
+### All Tests Summary
+
+| Suite | Tests | Description |
+|-------|-------|-------------|
+| Prolog unit tests | 27 | Schema and builder |
+| Prolog SDD tests | 41 | Requirement coverage |
+| Python CLI tests | 49 | CLI tool coverage |
+| **Total** | **117** | |
+
+Directly in Prolog:
 
 ```prolog
 ?- [test/test_schema], run_tests.
