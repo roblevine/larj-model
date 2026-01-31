@@ -1,0 +1,108 @@
+digraph "ecommerce" {
+  rankdir=TB;
+  node [shape=record, fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9];
+  labelloc="t";
+  label="Domain Model: ecommerce";
+
+
+  // Legend
+  subgraph cluster_legend {
+    label="Archetype Legend";
+    fontsize=12;
+    style=rounded;
+    color="#999999";
+
+    legend_mi [label="Moment-Interval", style=filled, fillcolor="#FFB6C1", shape=box];
+    legend_role [label="Role", style=filled, fillcolor="#FFFF99", shape=box];
+    legend_ppt [label="Party/Place/Thing", style=filled, fillcolor="#90EE90", shape=box];
+    legend_desc [label="Description", style=filled, fillcolor="#ADD8E6", shape=box];
+
+    legend_mi -> legend_role [style=invis];
+    legend_role -> legend_ppt [style=invis];
+    legend_ppt -> legend_desc [style=invis];
+  }
+
+
+  // Moment-Intervals (Pink)
+  order [label="{\<\<moment-interval\>\>\norder|tracked_for\lorder_number\lorder_date\ltotal_amount\lshipping_address\l|place_order()\ladd_line()\lcalculate_total()\lcomplete()\lcancel()\l}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+  shipment [label="{\<\<moment-interval\>\>\nshipment|tracked_for\lshipment_number\ldispatched_at\ldelivered_at\lcarrier\ltracking_number\l|dispatch()\lupdate_tracking()\lmark_delivered()\l}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+  stock_reservation [label="{\<\<moment-interval\>\>\nstock_reservation|tracked_for\lreservation_id\lreserved_at\lexpires_at\lquantity\l|reserve()\lrelease()\lconfirm()\l}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+
+  // Roles (Yellow)
+  purchaser [label="{\<\<role\>\>\npurchaser|role_context\ldescription\lcustomer_reference\l|get_order_history()\lcalculate_lifetime_value()\l}", style=filled, fillcolor="#FFFF99", color="#FFD700"];
+  stock_item [label="{\<\<role\>\>\nstock_item|role_context\ldescription\llocation\l|get_stock_movements()\l}", style=filled, fillcolor="#FFFF99", color="#FFD700"];
+  account_holder [label="{\<\<role\>\>\naccount_holder|role_context\ldescription\laccount_number\lregistered_at\llast_login\l|authenticate()\lget_saved_addresses()\l}", style=filled, fillcolor="#FFFF99", color="#FFD700"];
+
+  // Parties/Places/Things (Green)
+  product [label="{\<\<entity\>\>\nproduct|thing_type\ldescription\lsku\lname\lcurrent_stock\lreorder_level\l|adjust_stock()\lcheck_availability()\l}", style=filled, fillcolor="#90EE90", color="#228B22"];
+  customer [label="{\<\<entity\>\>\ncustomer|description\lcustomer_id\lname\lemail\lphone\l|update_contact_info()\lget_addresses()\l}", style=filled, fillcolor="#90EE90", color="#228B22"];
+
+  // Descriptions (Blue)
+  product_category [label="{\<\<description\>\>\nproduct_category|catalog_info\lcategory_code\lcategory_name\l|find_available_products()\lcalculate_total_stock()\l}", style=filled, fillcolor="#ADD8E6", color="#4169E1"];
+  customer_tier [label="{\<\<description\>\>\ncustomer_tier|catalog_info\ltier_code\ltier_name\l|get_eligible_customers()\l}", style=filled, fillcolor="#ADD8E6", color="#4169E1"];
+
+  // Services
+  order_processing_service [label="{\<\<service\>\>\norder_processing_service|place_order()\lfulfill_order()\l}", style=filled, fillcolor="#DDA0DD", color="#9932CC"];
+  inventory_allocation_service [label="{\<\<service\>\>\ninventory_allocation_service|allocate_stock()\lrelease_allocation()\l}", style=filled, fillcolor="#DDA0DD", color="#9932CC"];
+
+  // Aggregates
+
+  subgraph cluster_order_aggregate {
+    label="order_aggregate";
+    style="dashed,rounded";
+    color="#696969";
+    bgcolor="#F5F5F5";
+    order;
+    order_line;
+  }
+
+  subgraph cluster_shipment_aggregate {
+    label="shipment_aggregate";
+    style="dashed,rounded";
+    color="#696969";
+    bgcolor="#F5F5F5";
+    shipment;
+  }
+
+  subgraph cluster_product_aggregate {
+    label="product_aggregate";
+    style="dashed,rounded";
+    color="#696969";
+    bgcolor="#F5F5F5";
+    product;
+    stock_item;
+  }
+
+  subgraph cluster_reservation_aggregate {
+    label="reservation_aggregate";
+    style="dashed,rounded";
+    color="#696969";
+    bgcolor="#F5F5F5";
+    stock_reservation;
+  }
+
+  subgraph cluster_customer_aggregate {
+    label="customer_aggregate";
+    style="dashed,rounded";
+    color="#696969";
+    bgcolor="#F5F5F5";
+    customer;
+    account_holder;
+  }
+
+  // Relationships
+  product_category -> product [label="describes", style=dashed, arrowhead=open];
+  customer_tier -> customer [label="describes", style=dashed, arrowhead=open];
+  product -> stock_item [label="plays", arrowhead=open];
+  customer -> account_holder [label="plays", arrowhead=open];
+  customer -> purchaser [label="plays", arrowhead=open];
+  purchaser -> order [label="participates", arrowhead=open];
+  stock_item -> stock_reservation [label="participates", arrowhead=open];
+  order -> order_line [label="contains", arrowhead=diamond, style=bold];
+  order -> shipment [label="generates", style=dashed, arrowhead=vee];
+  order_processing_service -> order [label="coordinates", style=dotted, arrowhead=open];
+  order_processing_service -> shipment [label="coordinates", style=dotted, arrowhead=open];
+  inventory_allocation_service -> stock_reservation [label="coordinates", style=dotted, arrowhead=open];
+  inventory_allocation_service -> product [label="coordinates", style=dotted, arrowhead=open];
+}
