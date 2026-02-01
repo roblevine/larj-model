@@ -29,27 +29,33 @@
 
 ---
 
-## PHASE 1: Happy Path Event Timeline
+## PHASE 1: Event Catalogue + Narrative (Happy Path First)
+
+This template is designed to be built **incrementally**. Start with the smallest coherent happy path (key commands + key events), then iterate by asking probing questions to add unhappy paths, decisions, policies, and deeper detail.
+
+**Working agreement:** keep the Mermaid diagram(s) and the tables continuously up to date. If you stop at any moment, this document should reflect the best current understanding of the domain and exactly how far the analysis has progressed.
 
 ### The Story
 [SME describes the process in their words]
 
-### Domain Events (Chronological)
-```mermaid
-flowchart LR
-  %% Commands left, events right
-  classDef command fill:#60a5fa,stroke:#1d4ed8,color:#0b1220;
-  classDef event fill:#f59e0b,stroke:#92400e,color:#111827;
-  classDef policy fill:#f472b6,stroke:#9d174d,color:#111827;
+**Incremental facilitation loop (use throughout the session):**
+- Capture 3–7 “spine” steps first (happy path only): the smallest sequence that reaches a terminal success outcome.
+- Expand the Event Catalogue with precise SME wording + meaning as each event appears.
+- Add the matching commands to the canonical diagram (keep one time axis) and fill the Commands → Events table.
+- Ask probing questions to grow detail:
+  - “What can go wrong here?” (unhappy paths)
+  - “How do we decide?” (decisions/branches)
+  - “What happens automatically after this?” (policies)
+  - “What must always be true?” (rules/invariants)
+- Repeat until the SME says the narrative is complete enough for the session.
 
-  C1[Command]:::command --> E1[Domain Event]:::event
-  E1 --> E2[Domain Event]:::event
-  E2 --> E3[Domain Event]:::event
+### Event Catalogue (Chronological)
 
-  %% Policy example (dashed)
-  E2 -.-> P1[Policy]:::policy
-  P1 -.-> C2[Command]:::command
-```
+Purpose: capture *what happens* in SME language (names + meaning) without worrying yet about commands/policies/layout. This is the single source of truth for event names; the canonical diagram below is the executable narrative (command↔event spine + branches).
+
+| Event Name (SME wording) | Model Event Name | When it happens | Trigger (Actor / Command) | Notes / Meaning |
+|--------------------------|------------------|-----------------|---------------------------|----------------|
+|                          |                  |                 |                           |                |
 
 ## Event Storm – End-to-End (Living Diagram)  ✅ CANONICAL
 
@@ -69,7 +75,7 @@ This is the *primary* narrative artefact for the session. It must read strictly 
 ```mermaid
 flowchart LR
   %% Living diagram (maintained incrementally)
-  %% Hard rule: keep ONE main spine: Command → Event → Command → Event → ...
+  %% Hard rule: keep ONE main spine on a single time axis (Command ↔ Event), starting with whichever makes sense.
   %% Actors and policies are OFF the spine using dashed links.
 
   classDef command fill:#60a5fa,stroke:#1d4ed8,color:#0b1220;
@@ -99,9 +105,7 @@ flowchart LR
   D1 -->|no| E2x["Event: [failure outcome]"]:::event --> T2(("End: [terminal failure outcome]")):::terminal
 ```
 
-| Event Name (SME wording) | Model Event Name | When it happens | Trigger (Actor / Command) |
-|--------------------------|------------------|-----------------|---------------------------|
-|                          |                  |                 |                           |
+Use the Event Catalogue above to keep event naming consistent (SME wording ↔ model name) as you evolve this diagram.
 
 ### Commands → Events (Initial)
 | Command | Actor | Produces Event(s) | Notes / Preconditions |
