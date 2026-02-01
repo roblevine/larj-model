@@ -57,8 +57,8 @@ This is the *primary* narrative artefact for the session. It must read strictly 
 
 **Hard rules (non-negotiable):**
 - Use `flowchart LR`.
-- The happy-path MUST be a single chained sequence:
-  `Command → Event → Command → Event → …` (one horizontal timeline).
+- The happy-path MUST be a single chained sequence on one horizontal timeline, alternating between commands and events (start with whichever makes sense for the scenario):
+  `Start → Command → Event → Command → Event → … → End`.
 - Commands MUST be connected to the previous event (or start node) so they appear **in sequence**, not stacked.
 - Actors MUST NOT form their own “vertical” command list:
   - Show actor responsibility via **dashed** links to commands, *off the time axis*.
@@ -68,12 +68,40 @@ This is the *primary* narrative artefact for the session. It must read strictly 
 
 ```mermaid
 flowchart LR
-  %% (maintained incrementally)
+  %% Living diagram (maintained incrementally)
+  %% Hard rule: keep ONE main spine: Command → Event → Command → Event → ...
+  %% Actors and policies are OFF the spine using dashed links.
 
+  classDef command fill:#60a5fa,stroke:#1d4ed8,color:#0b1220;
+  classDef event fill:#f59e0b,stroke:#92400e,color:#111827;
+  classDef policy fill:#f472b6,stroke:#9d174d,color:#111827;
+  classDef actor fill:#e5e7eb,stroke:#6b7280,color:#111827;
+  classDef decision fill:#fde68a,stroke:#b45309,color:#111827;
+  classDef terminal fill:#bbf7d0,stroke:#166534,color:#052e16;
+
+  %% --- Main spine (single time axis) ---
+  S((Start)) --> C1["Command: [verb] [object]"]:::command --> E1["Event: [something happened]"]:::event
+  E1 --> C2["Command: ..."]:::command --> E2["Event: ..."]:::event
+  E2 --> C3["Command: ..."]:::command --> E3["Event: ..."]:::event
+  E3 --> T1(("End: [terminal success outcome]")):::terminal
+
+  %% --- Actor responsibility (off-axis, dashed) ---
+  A1["Actor: Customer"]:::actor -.-> C1
+  A2["Actor: Ops / Backoffice"]:::actor -.-> C2
+
+  %% --- Policy example (event → policy → command, all off-axis dashed) ---
+  E1 -.-> P1["Policy: When E1, then do C2"]:::policy
+  P1 -.-> C2
+
+  %% --- Decision + unhappy path example (branch from event/decision, keep spine intact) ---
+  E2 --> D1{"Decision: [condition?]"}:::decision
+  D1 -->|yes| C3
+  D1 -->|no| E2x["Event: [failure outcome]"]:::event --> T2(("End: [terminal failure outcome]")):::terminal
+```
 
 | Event Name (SME wording) | Model Event Name | When it happens | Trigger (Actor / Command) |
 |--------------------------|------------------|-----------------|---------------------------|
-|                      |                  |                 |                           |
+|                          |                  |                 |                           |
 
 ### Commands → Events (Initial)
 | Command | Actor | Produces Event(s) | Notes / Preconditions |
