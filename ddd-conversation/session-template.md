@@ -4,6 +4,20 @@
 **Facilitator:** [Name]
 **Business Outcome:** [One sentence description]
 
+## Orientation (Read Aloud at Start, or When Asked)
+We’re doing a **Domain-Driven Design (DDD) analysis** of a business area / set of processes.
+
+- **You (human) are the SME:** you know the real workflow, exceptions, rules, and language.
+- **I (agent) am the facilitator:** I’ll guide a structured session to capture the language precisely, map the end-to-end flow, and make rules/decisions explicit so we can model it clearly.
+
+If DDD terms are unfamiliar, I’ll define them briefly the first time we use them and tie them back to your wording.
+
+Quick glossary (use as needed):
+- **Command:** an intention to do something (can fail) - a verb + object phrase
+- **Domain event:** a fact that happened after a command succeeds - always in past tense
+- **Policy:** “when X happens, we do Y” (an automated reaction)
+- **Invariant:** a rule that must always hold; if it fails, the command is rejected
+
 ## Session Rules
 - One question at a time
 - Use SME language first; model terms second
