@@ -1,304 +1,350 @@
 # DDD Discovery Session: [Domain Name]
-**Date:** [Date]
-**Participants:** [Names]
-**Facilitator:** [Name]
-**Business Outcome:** [One sentence description]
 
-## Orientation (Read Aloud at Start, or When Asked)
-We’re doing a **Domain-Driven Design (DDD) analysis** of a business area / set of processes.
-
-- **You (human) are the SME:** you know the real workflow, exceptions, rules, and language.
-- **I (agent) am the facilitator:** I’ll guide a structured session to capture the language precisely, map the end-to-end flow, and make rules/decisions explicit so we can model it clearly.
-
-If DDD terms are unfamiliar, I’ll define them briefly the first time we use them and tie them back to your wording.
-
-Quick glossary (use as needed):
-- **Command:** an intention to do something (can fail) - a verb + object phrase
-- **Domain event:** a fact that happened after a command succeeds - always in past tense
-- **Policy:** “when X happens, we do Y” (an automated reaction)
-- **Invariant:** a rule that must always hold; if it fails, the command is rejected
-
-## Session Rules
-- One question at a time
-- Use SME language first; model terms second
-- No passive voice (“the system does…”)
-- Every event must have a clear trigger (actor + command)
-- Stop and rephrase vague statements
-- If it can’t be named precisely, it isn’t understood yet
-
-**Scope / In Scope:**
-- 
-
-**Non-Goals / Out of Scope (for now):**
-- 
-
-**Assumptions (validate later):**
-- 
-
-## Diagram Conventions (Mermaid)
-- Event timelines: `flowchart LR`
-- Commands always left of events
-- Policies always dashed edges
-- Aggregates/contexts grouped using `subgraph`
+| Field | Value |
+|-------|-------|
+| **Date** | [Date] |
+| **SME** | [Name] |
+| **Facilitator** | [Agent/Name] |
+| **Business Outcome** | [One sentence: what does success look like?] |
+| **Session Mode** | [ ] From scratch / [ ] From skeleton |
 
 ---
 
-## PHASE 1: Event Catalogue + Narrative (Happy Path First)
+## Orientation
 
-This template is designed to be built **incrementally**. Start with the smallest coherent happy path (key commands + key events), then iterate by asking probing questions to add unhappy paths, decisions, policies, and deeper detail.
+> **Read aloud or paraphrase at session start:**
+>
+> We're doing a Domain-Driven Design analysis of your business process.
+>
+> - **You** are the Subject Matter Expert — you know how it actually works, the language, rules, and exceptions.
+> - **I** am the facilitator — I'll guide us through a structured discovery to capture the workflow precisely.
+>
+> We'll work in phases: first the happy path (everything goes right), then we'll dig into rules, failures, and structure.
+>
+> I'll ask one question at a time. If I use unfamiliar terms, I'll define them. If something's vague, I'll push for precision.
 
-**Working agreement:** keep the Mermaid diagram(s) and the tables continuously up to date. If you stop at any moment, this document should reflect the best current understanding of the domain and exactly how far the analysis has progressed.
+### Quick Glossary (reference as needed)
+| Term | Meaning |
+|------|---------|
+| **Command** | An intention to do something (can fail) — verb + object |
+| **Domain Event** | A fact that happened — always past tense |
+| **Policy** | "When X happens, do Y" — an automated reaction |
+| **Invariant** | A rule that must always hold |
 
-### The Story
-[SME describes the process in their words]
+---
 
-**Incremental facilitation loop (use throughout the session):**
-- Capture 3–7 “spine” steps first (happy path only): the smallest sequence that reaches a terminal success outcome.
-- Expand the Event Catalogue with precise SME wording + meaning as each event appears.
-- Add the matching commands to the canonical diagram (keep one time axis) and fill the Commands → Events table.
-- Ask probing questions to grow detail:
-  - “What can go wrong here?” (unhappy paths)
-  - “How do we decide?” (decisions/branches)
-  - “What happens automatically after this?” (policies)
-  - “What must always be true?” (rules/invariants)
-- Repeat until the SME says the narrative is complete enough for the session.
+## Scope
 
-### Event Catalogue (Chronological)
+**In Scope:**
+-
 
-Purpose: capture *what happens* in SME language (names + meaning) without worrying yet about commands/policies/layout. This is the single source of truth for event names; the canonical diagram below is the executable narrative (command↔event spine + branches).
+**Out of Scope (for this session):**
+-
 
-| Event Name (SME wording) | Model Event Name | When it happens | Trigger (Actor / Command) | Notes / Meaning |
-|--------------------------|------------------|-----------------|---------------------------|----------------|
-|                          |                  |                 |                           |                |
+**Assumptions (to validate):**
+-
 
-## Event Storm – End-to-End (Living Diagram)  ✅ CANONICAL
+---
 
-This is the *primary* narrative artefact for the session. It must read strictly left-to-right as a single time axis.
+## Session Mode
 
-**Hard rules (non-negotiable):**
-- Use `flowchart LR`.
-- The happy-path MUST be a single chained sequence on one horizontal timeline, alternating between commands and events (start with whichever makes sense for the scenario):
-  `Start → Command → Event → Command → Event → … → End`.
-- Commands MUST be connected to the previous event (or start node) so they appear **in sequence**, not stacked.
-- Actors MUST NOT form their own “vertical” command list:
-  - Show actor responsibility via **dashed** links to commands, *off the time axis*.
-- Decisions (branches) MUST sit on the time axis and branch from an event.
-- Add unhappy paths as branches off the relevant event/decision, but keep the main spine intact.
-- Anti-pattern to avoid: multiple commands pointing from an actor without being chained from prior events (this implies simultaneity).
+### [ ] Option A: From Scratch
+SME describes the process; facilitator captures.
+
+### [ ] Option B: From Skeleton
+Facilitator proposes a typical flow; SME reacts, corrects, customizes.
+
+**If skeleton mode:** Facilitator drafts initial diagram below, then asks: "What's wrong, missing, or named differently?"
+
+---
+
+## PHASE 1: Happy Path (End-to-End)
+
+**Goal:** Capture the successful path from trigger to outcome. No exceptions yet.
+
+### The Trigger
+| Element | Value |
+|---------|-------|
+| **Actor** | [Who/what starts it?] |
+| **Command/Event** | [What kicks it off?] |
+| **Success Outcome** | [What does "done successfully" look like?] |
+
+### Event Catalogue
+
+Source of truth for event names and meanings.
+
+| # | Event (SME wording) | Model Name | When it happens | Triggered by | Notes |
+|---|---------------------|------------|-----------------|--------------|-------|
+| 1 | | | | | |
+| 2 | | | | | |
+| 3 | | | | | |
+
+### Commands → Events
+
+| Command | Actor | Produces Event | Preconditions |
+|---------|-------|----------------|---------------|
+| | | | |
+
+### End-to-End Event Storm (Canonical Diagram)
+
+**Rules:**
+- Single horizontal spine: Start → Command → Event → ... → Success End
+- Actors connect via dashed lines (off-spine)
+- No unhappy paths until Phase 2
 
 ```mermaid
 flowchart LR
-  %% Living diagram (maintained incrementally)
-  %% Hard rule: keep ONE main spine on a single time axis (Command ↔ Event), starting with whichever makes sense.
-  %% Actors and policies are OFF the spine using dashed links.
+  classDef command fill:#60a5fa,stroke:#1d4ed8,color:#0b1220
+  classDef event fill:#f59e0b,stroke:#92400e,color:#111827
+  classDef actor fill:#e5e7eb,stroke:#6b7280,color:#111827
+  classDef terminal fill:#bbf7d0,stroke:#166534,color:#052e16
 
-  classDef command fill:#60a5fa,stroke:#1d4ed8,color:#0b1220;
-  classDef event fill:#f59e0b,stroke:#92400e,color:#111827;
-  classDef policy fill:#f472b6,stroke:#9d174d,color:#111827;
-  classDef actor fill:#e5e7eb,stroke:#6b7280,color:#111827;
-  classDef decision fill:#fde68a,stroke:#b45309,color:#111827;
-  classDef terminal fill:#bbf7d0,stroke:#166534,color:#052e16;
+  S((Start)) --> C1["Command: [verb object]"]:::command
+  C1 --> E1["Event: [past tense]"]:::event
+  E1 --> C2["Command: ..."]:::command
+  C2 --> E2["Event: ..."]:::event
+  E2 --> T1(("Success: [outcome]")):::terminal
 
-  %% --- Main spine (single time axis) ---
-  S((Start)) --> C1["Command: [verb] [object]"]:::command --> E1["Event: [something happened]"]:::event
-  E1 --> C2["Command: ..."]:::command --> E2["Event: ..."]:::event
-  E2 --> C3["Command: ..."]:::command --> E3["Event: ..."]:::event
-  E3 --> T1(("End: [terminal success outcome]")):::terminal
-
-  %% --- Actor responsibility (off-axis, dashed) ---
-  A1["Actor: Customer"]:::actor -.-> C1
-  A2["Actor: Ops / Backoffice"]:::actor -.-> C2
-
-  %% --- Policy example (event → policy → command, all off-axis dashed) ---
-  E1 -.-> P1["Policy: When E1, then do C2"]:::policy
-  P1 -.-> C2
-
-  %% --- Decision + unhappy path example (branch from event/decision, keep spine intact) ---
-  E2 --> D1{"Decision: [condition?]"}:::decision
-  D1 -->|yes| C3
-  D1 -->|no| E2x["Event: [failure outcome]"]:::event --> T2(("End: [terminal failure outcome]")):::terminal
+  A1["Actor: ..."]:::actor -.-> C1
 ```
 
-Use the Event Catalogue above to keep event naming consistent (SME wording ↔ model name) as you evolve this diagram.
+### Edge Cases / Exceptions (Parked)
 
-### Commands → Events (Initial)
-| Command | Actor | Produces Event(s) | Notes / Preconditions |
-|--------|-------|-------------------|-----------------------|
-|        |       |                   |                       |
+Captured during Phase 1, explored in Phase 2.
+
+| # | Exception | Mentioned at | Priority |
+|---|-----------|--------------|----------|
+| 1 | | | |
+
+### Phase 1 Exit Checklist
+- [ ] Trigger identified (actor + command)
+- [ ] Success end state explicit in diagram
+- [ ] Event Catalogue has 5-15 events
+- [ ] Diagram shows unbroken happy-path spine
+- [ ] SME confirms: "That's the successful case"
 
 ---
 
-## PHASE 2: Event Deep Dive
+## PHASE 2: Deep Dive
 
-### [EventName]
-- **Command:** 
-- **Actor:** 
-- **Business Rules:**
-  - 
-- **Data Required:**
-  - 
-- **Downstream Events:**
-  - 
-- **Alternative Flows:**
-  - 
+**Goal:** Add depth — rules, data, decisions, failures.
 
-### Context Tension Check (after the 2–3 most important events)
-Answer explicitly:
-- Would another team disagree with the meaning of this event?
-- Is this rule driven by regulatory, operational, or commercial reasons?
-- Would we want to deploy this logic independently?
+**Prerequisite:** Phase 1 checklist complete.
 
-If “yes” to any, capture the emerging boundary here:
-- Candidate context boundary:
+### Event Deep Dives
+
+#### [Event Name 1]
+| Aspect | Detail |
+|--------|--------|
+| **Command** | |
+| **Actor** | |
+| **Business Rules** | |
+| **Data Required** | |
+| **What can go wrong?** | |
+
+#### [Event Name 2]
+| Aspect | Detail |
+|--------|--------|
+| **Command** | |
+| **Actor** | |
+| **Business Rules** | |
+| **Data Required** | |
+| **What can go wrong?** | |
+
+### Business Rules / Invariants
+
+| ID | Rule (must always be true) | Example | Enforced by |
+|----|---------------------------|---------|-------------|
+| R1 | | | |
+
+### Unhappy Paths (Top 3)
+
+Now we model the parked exceptions.
+
+| # | Failure Scenario | Branches from | Terminal Outcome |
+|---|------------------|---------------|------------------|
+| 1 | | | |
+| 2 | | | |
+| 3 | | | |
+
+Update the canonical diagram with decision branches:
+
+```mermaid
+flowchart LR
+  classDef command fill:#60a5fa,stroke:#1d4ed8,color:#0b1220
+  classDef event fill:#f59e0b,stroke:#92400e,color:#111827
+  classDef decision fill:#fde68a,stroke:#b45309,color:#111827
+  classDef terminal fill:#bbf7d0,stroke:#166534,color:#052e16
+  classDef failure fill:#fecaca,stroke:#b91c1c,color:#450a0a
+
+  %% Copy happy path from Phase 1, then add branches
+
+  %% Example decision branch:
+  %% E2 --> D1{"Rule check?"}:::decision
+  %% D1 -->|pass| C3
+  %% D1 -->|fail| EF1["Event: [failure]"]:::event --> TF1(("Failure: [outcome]")):::failure
+```
+
+### Context Tension Check
+
+Answer after examining 2-3 key events:
+
+| Question | Answer | Implication |
+|----------|--------|-------------|
+| Would another team define this event differently? | | |
+| Is this rule regulatory, operational, or commercial? | | |
+| Would you deploy this logic independently? | | |
+
+**Candidate context boundary (if detected):**
+- Boundary name:
 - Source of tension:
-- Terms that differ by context:
+- Terms that differ:
 
-### Business Rules / Invariants (Catalog)
-| Rule ID | Statement (must always be true) | Example (Given/When/Then) | Enforced By (candidate) |
-|--------|----------------------------------|----------------------------|--------------------------|
-| R1     |                                  |                            |                          |
+### Phase 2 Exit Checklist
+- [ ] Key events have business rules documented
+- [ ] Top 3 failures modeled with terminal outcomes
+- [ ] Data requirements identified
+- [ ] Context tensions noted (or "none detected")
 
 ---
 
 ## PHASE 3: Aggregates
 
-### Aggregate Summary
-| Aggregate | Responsibility | Commands | Key Invariants |
-|----------|----------------|----------|----------------|
-|          |                |          |                |
+**Goal:** Find consistency boundaries.
 
-### [AggregateName]
-**Responsibility:** [What does this protect/enforce?]
+**Prerequisite:** Phase 2 checklist complete.
 
-**Why this is an aggregate (mandatory):**
-- Lifecycle:
-- Invariants enforced:
+### Aggregate Candidates
+
+| Aggregate | Responsibility | Commands | Events | Key Invariants |
+|-----------|---------------|----------|--------|----------------|
+| | | | | |
+
+### Aggregate Detail: [Name]
+
+| Aspect | Detail |
+|--------|--------|
+| **Responsibility** | What does this protect/enforce? |
+| **Commands handled** | |
+| **Events emitted** | |
+| **Invariants** | |
+| **State owned** | |
+
+**Why this is an aggregate:**
 - Must change atomically because:
-- What would break if split?
+- What would break if split:
 
-**Commands Handled:**
-- 
-**Events Emitted:**
-- 
-**Invariants:**
-- 
-**State Owned (authoritative):**
-- 
-
-**Lifecycle (optional):**
+**Lifecycle (if useful):**
 ```mermaid
 stateDiagram-v2
   [*] --> State1
   State1 --> State2
+  State2 --> [*]
 ```
 
----
-
-## Architecture Signals
-
-### Consistency & Transactions
-- Strong consistency required within:
-- Eventual consistency across:
-
-### State & Storage Implications
-- Event-sourced candidates:
-- CRUD/persistence-oriented components:
-- Temporal/audit requirements:
-
-### Coupling Risks
-- High fan-out events:
-- Chatty aggregates:
-- Cross-context invariants (smell):
-
-### Quality Attributes & Constraints
-- Latency/throughput expectations:
-- Availability/consistency trade-offs:
-- Security/privacy/PII constraints:
-- Observability needs (logs/metrics/traces/audit):
+### Phase 3 Exit Checklist
+- [ ] Aggregate candidates identified
+- [ ] Each has: commands, events, invariants
+- [ ] Consistency boundaries justified
 
 ---
 
 ## PHASE 4: Supporting Patterns
 
-### Read Models
-| Name | Purpose | Source Events | Consistency / Freshness |
-|------|---------|--------------|--------------------------|
+**Goal:** Read models, policies, sagas, external systems.
 
-|      |         |             |                         |
+**Prerequisite:** Phase 3 checklist complete.
 
-### Policies (Event → Command)
+### Read Models (Queries)
+
+| Query Name | User | Purpose | Source Events | Freshness |
+|------------|------|---------|---------------|-----------|
+| | | | | |
+
+### Policies (Automated Reactions)
+
 | When (Event) | Then (Command) | Why |
 |--------------|----------------|-----|
-
-|              |                |     |
+| | | |
 
 ### Sagas / Process Managers
-| Name | Trigger | Responsibilities | Completion Signal |
-|------|---------|------------------|-------------------|
-|      |         |                  |                   |
+
+| Name | Trigger | Steps | Completion Signal |
+|------|---------|-------|-------------------|
+| | | | |
 
 ### External Systems
-| System | Integration Point | Events In | Events Out |
-|--------|-------------------|----------|-----------|
 
-|        |                  |          |           |
+| System | Integration Point | Events In | Events Out |
+|--------|-------------------|-----------|------------|
+| | | | |
+
+### Phase 4 Exit Checklist
+- [ ] Key read models identified
+- [ ] Policies captured
+- [ ] Long-running processes noted
+- [ ] External boundaries mapped
 
 ---
 
 ## Bounded Context Map
+
 ```mermaid
 flowchart TB
-  subgraph Core_Context
-    A[Aggregate A]
-    B[Aggregate B]
+  subgraph Context_A["Context: [Name]"]
+    A1[Aggregate]
   end
 
-  subgraph Supporting_Context
-    C[Aggregate C]
+  subgraph Context_B["Context: [Name]"]
+    B1[Aggregate]
   end
 
-  A -->|Domain Event| C
+  A1 -->|"Event: [name]"| B1
 ```
 
 ---
 
 ## Ubiquitous Language
 
-| Term (SME wording) | Model Term | Definition | Used By |
+| Term (SME wording) | Model Term | Definition | Context |
 |-------------------|------------|------------|---------|
-|                   |            |            |         |
+| | | | |
 
-Rule: every domain event name must map back to SME wording. If renamed, record both.
+**Rule:** Every domain event name must trace to SME wording. If renamed, record both.
 
 ---
 
 ## Open Questions / Parking Lot
+
+| # | Question | Raised during | Status |
+|---|----------|---------------|--------|
+| 1 | | | |
+
+---
+
+## Key Decisions
+
+| Decision | Options Considered | Chosen | Reason |
+|----------|-------------------|--------|--------|
+| | | | |
+
+---
+
+## Session Summary
+
+**What we covered:**
+-
+
+**What's still open:**
+-
+
+**Recommended next steps:**
 -
 
 ---
 
-## Key Decisions (Session ADRs)
-| Decision | Context | Chosen Option | Rejected Options | Reason |
-|----------|---------|---------------|------------------|--------|
-|          |         |               |                  |        |
+## Facilitator Notes (not shared)
 
----
-
-## Explicit Non-Goals / Out of Scope
-- Concepts intentionally NOT modelled:
-- Processes owned elsewhere:
-- Data we will consume but not own:
-
----
-
-## Decisions / Follow-ups
-| Item | Decision or Action | Owner | Due |
-|------|--------------------|-------|-----|
-|      |                    |       |     |
-
----
-
-## Facilitator Notes (optional, not shared)
-- Aggregate smells noticed:
+- Aggregate smells:
 - Language conflicts:
-- Follow-up sessions required:
+- Follow-up sessions needed:
