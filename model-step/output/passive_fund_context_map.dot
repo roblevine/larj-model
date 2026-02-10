@@ -1,0 +1,12 @@
+digraph "passive_fund Context Map" {
+  rankdir=LR;
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, fillcolor="#E8E8E8"];
+  edge [fontname="Helvetica", fontsize=10];
+  label="passive_fund - Context Map";
+
+  index_design [label="Index Design\n(Core index methodology and calculation)"];
+  governance [label="Index Governance\n(Oversight and compliance)"];
+  distribution [label="Index Distribution\n(Licensing and data distribution)"];
+  governance -> index_design [label="Customer/Supplier", style=solid];
+  index_design -> distribution [label="Customer/Supplier", style=solid];
+}

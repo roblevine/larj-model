@@ -65,6 +65,18 @@
     supporting_domain/1,
     generic_domain/1,
 
+    % Inheritance predicates
+    inherits_from/2,
+    abstract_object/1,
+    shared_attribute/3,
+    shared_behaviour/3,
+
+    % Inheritance analysis
+    inheritance_chain/2,
+    common_attributes/3,
+    common_behaviours/3,
+    refactor_candidates/1,
+
     % Validation predicates
     validate_model/1,
     archetype_of/2,
@@ -420,6 +432,159 @@
 :- dynamic generic_domain/1.
 
 %% --------------------------------------------------------------------------
+%% Inheritance Schema
+%% --------------------------------------------------------------------------
+
+%% inherits_from(+ChildId, +ParentId) is nondet
+%
+%  Declares that a domain object inherits from another.
+%  Child inherits attributes and behaviours from parent.
+%
+%  @param ChildId   The child/derived object
+%  @param ParentId  The parent/base object
+:- dynamic inherits_from/2.
+
+%% abstract_object(+ObjectId) is nondet
+%
+%  Marks a domain object as abstract (cannot be instantiated directly).
+%  Abstract objects serve as base types for inheritance hierarchies.
+%
+%  @param ObjectId  The abstract domain object
+:- dynamic abstract_object/1.
+
+%% shared_attribute(+AttributeName, +ObjectId1, +ObjectId2) is nondet
+%
+%  Declares that two objects share an attribute (potential for extraction).
+%
+%  @param AttributeName  The shared attribute name
+%  @param ObjectId1      First object with this attribute
+%  @param ObjectId2      Second object with this attribute
+:- dynamic shared_attribute/3.
+
+%% shared_behaviour(+BehaviourName, +ObjectId1, +ObjectId2) is nondet
+%
+%  Declares that two objects share a behaviour (potential for extraction).
+%
+%  @param BehaviourName  The shared behaviour name
+%  @param ObjectId1      First object with this behaviour
+%  @param ObjectId2      Second object with this behaviour
+:- dynamic shared_behaviour/3.
+
+%% --------------------------------------------------------------------------
+%% Inheritance Analysis Predicates
+%% --------------------------------------------------------------------------
+
+%% inheritance_chain(+ObjectId, -Chain) is det
+%
+%  Returns the full inheritance chain for an object (ancestors).
+%
+%  @param ObjectId  The object to trace
+%  @param Chain     List of ancestors from immediate parent to root
+inheritance_chain(ObjectId, Chain) :-
+    inheritance_chain_acc(ObjectId, [], Chain).
+
+inheritance_chain_acc(ObjectId, Acc, Chain) :-
+    inherits_from(ObjectId, ParentId),
+    !,
+    inheritance_chain_acc(ParentId, [ParentId|Acc], Chain).
+inheritance_chain_acc(_, Acc, Chain) :-
+    reverse(Acc, Chain).
+
+%% common_attributes(+ObjectId1, +ObjectId2, -CommonAttrs) is det
+%
+%  Finds attributes common to two objects (refactoring candidates).
+%
+%  @param ObjectId1    First object
+%  @param ObjectId2    Second object
+%  @param CommonAttrs  List of common attribute names
+common_attributes(Obj1, Obj2, CommonAttrs) :-
+    Obj1 \= Obj2,
+    findall(AttrName, (
+        object_attribute(Obj1, AttrName, _),
+        object_attribute(Obj2, AttrName, _)
+    ), Attrs),
+    sort(Attrs, CommonAttrs).
+
+%% common_behaviours(+ObjectId1, +ObjectId2, -CommonBehaviours) is det
+%
+%  Finds behaviours common to two objects (refactoring candidates).
+%
+%  @param ObjectId1        First object
+%  @param ObjectId2        Second object
+%  @param CommonBehaviours List of common behaviour names
+common_behaviours(Obj1, Obj2, CommonBehaviours) :-
+    Obj1 \= Obj2,
+    findall(BehavName, (
+        object_behaviour(Obj1, BehavName, _),
+        object_behaviour(Obj2, BehavName, _)
+    ), Behavs),
+    sort(Behavs, CommonBehaviours).
+
+%% refactor_candidates(-Candidates) is det
+%
+%  Identifies pairs of objects that share enough attributes/behaviours
+%  to warrant considering extraction of a common base type.
+%
+%  @param Candidates  List of candidate(Obj1, Obj2, SharedAttrs, SharedBehavs)
+refactor_candidates(Candidates) :-
+    findall(candidate(Obj1, Obj2, Attrs, Behavs), (
+        all_objects(Obj1),
+        all_objects(Obj2),
+        Obj1 @< Obj2,  % Avoid duplicates
+        \+ inherits_from(Obj1, Obj2),
+        \+ inherits_from(Obj2, Obj1),
+        common_attributes(Obj1, Obj2, Attrs),
+        common_behaviours(Obj1, Obj2, Behavs),
+        (length(Attrs, AL), AL >= 2 ; length(Behavs, BL), BL >= 1)
+    ), Candidates).
+
+%% Helper: Get all domain objects
+all_objects(Id) :-
+    moment_interval(Id, _).
+all_objects(Id) :-
+    role(Id, _).
+all_objects(Id) :-
+    party_place_thing(Id, _).
+all_objects(Id) :-
+    description(Id, _).
+
+%% Helper: Unified attribute access across archetypes
+object_attribute(Id, Name, Spec) :-
+    mi_attribute(Id, Name, Spec).
+object_attribute(Id, Name, Spec) :-
+    role_attribute(Id, Name, Spec).
+object_attribute(Id, Name, Spec) :-
+    ppt_attribute(Id, Name, Spec).
+object_attribute(Id, Name, Spec) :-
+    desc_attribute(Id, Name, Spec).
+
+%% Helper: Unified behaviour access across archetypes
+object_behaviour(Id, Name, Spec) :-
+    mi_behaviour(Id, Name, Spec).
+object_behaviour(Id, Name, Spec) :-
+    role_behaviour(Id, Name, Spec).
+object_behaviour(Id, Name, Spec) :-
+    ppt_behaviour(Id, Name, Spec).
+object_behaviour(Id, Name, Spec) :-
+    desc_behaviour(Id, Name, Spec).
+
+%% descendants(+ObjectId, -Descendants) is det
+%
+%  Returns all objects that inherit from this object (direct and indirect).
+%
+%  @param ObjectId     The parent object
+%  @param Descendants  List of all descendant objects
+descendants(ObjectId, Descendants) :-
+    findall(Child, inherits_from(Child, ObjectId), DirectChildren),
+    findall(Desc, (
+        member(Child, DirectChildren),
+        descendants(Child, ChildDescs),
+        member(Desc, ChildDescs)
+    ), IndirectDescs),
+    append(DirectChildren, IndirectDescs, All),
+    sort(All, Descendants).
+
+%% --------------------------------------------------------------------------
 %% Convenience Relationship Predicates
 %% --------------------------------------------------------------------------
 
@@ -575,6 +740,10 @@ clear_model :-
     retractall(core_domain(_)),
     retractall(supporting_domain(_)),
     retractall(generic_domain(_)),
+    retractall(inherits_from(_, _)),
+    retractall(abstract_object(_)),
+    retractall(shared_attribute(_, _, _)),
+    retractall(shared_behaviour(_, _, _)),
     retractall(participates_in(_, _, _)),
     retractall(contains_detail(_, _)),
     retractall(describes(_, _)),

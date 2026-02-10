@@ -1,0 +1,151 @@
+digraph "passive_fund" {
+  rankdir=TB;
+  compound=true;
+  node [shape=record, fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9];
+  labelloc="t";
+  label="Domain Model: passive_fund";
+
+
+  // Legend
+  subgraph cluster_legend {
+    label="Archetype Legend";
+    fontsize=12;
+    style=rounded;
+    color="#999999";
+
+    legend_mi [label="Moment-Interval", style=filled, fillcolor="#FFB6C1", shape=box];
+    legend_role [label="Role", style=filled, fillcolor="#FFFF99", shape=box];
+    legend_ppt [label="Party/Place/Thing", style=filled, fillcolor="#90EE90", shape=box];
+    legend_desc [label="Description", style=filled, fillcolor="#ADD8E6", shape=box];
+
+    legend_mi -> legend_role [style=invis];
+    legend_role -> legend_ppt [style=invis];
+    legend_ppt -> legend_desc [style=invis];
+  }
+
+
+  // Bounded Contexts
+
+  subgraph cluster_ctx_index_design {
+    label="Index Design\n[Core index methodology and calculation]";
+    fontsize=14;
+    fontname="Helvetica-Bold";
+    style="rounded,filled";
+    color="#DAA520";
+    bgcolor="#FFF8DC";
+    penwidth=2;
+
+    // Moment-Intervals
+  rebalancing [label="{\<\<moment-interval\>\>\nrebalancing|tracked_for\lreview_date\lannouncement_date\leffective_date\lfrequency\l|}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+  corporate_action [label="{\<\<moment-interval\>\>\ncorporate_action|tracked_for\laction_type\leffective_date\ladjustment_factor\l|}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+  index_calculation [label="{\<\<moment-interval\>\>\nindex_calculation|tracked_for\lcalculation_time\lindex_level\ldivisor\ltotal_return\l|}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+
+    // Roles
+  index_constituent [label="{\<\<role\>\>\nindex_constituent|role_context\ldescription\lweight\lshares\lselection_score\l|calculate_contribution()\l}", style=filled, fillcolor="#FFFF99", color="#FFD700"];
+  universe_member [label="{\<\<role\>\>\nuniverse_member|role_context\ldescription\lmarket_cap\lliquidity_score\lfactor_scores\l|evaluate_eligibility()\l}", style=filled, fillcolor="#FFFF99", color="#FFD700"];
+
+    // Entities
+  index [label="{\<\<entity\>\>\nindex|thing_type\ldescription\lbase_date\lbase_value\lcurrency\lconstituent_count\l|}", style=filled, fillcolor="#90EE90", color="#228B22"];
+  security [label="{\<\<entity\>\>\nsecurity|thing_type\ldescription\lticker\lexchange\lsecurity_type\lcountry\l|}", style=filled, fillcolor="#90EE90", color="#228B22"];
+  index_methodology [label="{\<\<entity\>\>\nindex_methodology|thing_type\ldescription\lversion\llast_updated\lselection_rules\lweighting_scheme\l|}", style=filled, fillcolor="#90EE90", color="#228B22"];
+
+    // Descriptions
+  index_type [label="{\<\<description\>\>\nindex_type|catalog_info\lasset_class\lstrategy\l|}", style=filled, fillcolor="#ADD8E6", color="#4169E1"];
+  security_classification [label="{\<\<description\>\>\nsecurity_classification|catalog_info\lgics_sector\lmarket_classification\l|}", style=filled, fillcolor="#ADD8E6", color="#4169E1"];
+  weighting_methodology [label="{\<\<description\>\>\nweighting_methodology|catalog_info\lmethod_name\lcap_rules\loptimisation_target\l|}", style=filled, fillcolor="#ADD8E6", color="#4169E1"];
+
+    // Services
+
+    // Aggregates
+    index_agg_invariants [label="index_agg invariants:\l• Total constituent weights must equal 100%\l• Minimum 20 constituents for UCITS compliance\l", shape=note, style=filled, fillcolor="#FFFACD", fontsize=8];
+    index_agg_invariants -> index [style=dotted, arrowhead=none];
+    rebalancing_agg_invariants [label="rebalancing_agg invariants:\l• Selected constituents must be from eligible universe\l", shape=note, style=filled, fillcolor="#FFFACD", fontsize=8];
+    rebalancing_agg_invariants -> rebalancing [style=dotted, arrowhead=none];
+  }
+
+  subgraph cluster_ctx_governance {
+    label="Index Governance\n[Oversight and compliance]";
+    fontsize=14;
+    fontname="Helvetica-Bold";
+    style="rounded,filled";
+    color="#2E8B57";
+    bgcolor="#F0FFF0";
+    penwidth=2;
+
+    // Moment-Intervals
+  governance_review [label="{\<\<moment-interval\>\>\ngovernance_review|tracked_for\lreview_date\lreview_type\ldecisions\l|}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+  methodology_change [label="{\<\<moment-interval\>\>\nmethodology_change|tracked_for\lchange_description\lapproval_date\leffective_date\l|}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+
+    // Roles
+  committee_member [label="{\<\<role\>\>\ncommittee_member|role_context\ldescription\lrole_type\lvoting_rights\l|vote_on_change()\l}", style=filled, fillcolor="#FFFF99", color="#FFD700"];
+  index_administrator [label="{\<\<role\>\>\nindex_administrator|role_context\ldescription\lregistration_status\ljurisdiction\l|approve_methodology()\l}", style=filled, fillcolor="#FFFF99", color="#FFD700"];
+
+    // Entities
+  fund_manager [label="{\<\<entity\>\>\nfund_manager|description\laum_total\lregulatory_status\l|}", style=filled, fillcolor="#90EE90", color="#228B22"];
+  regulator [label="{\<\<entity\>\>\nregulator|description\ljurisdiction\lframework\l|}", style=filled, fillcolor="#90EE90", color="#228B22"];
+  governance_framework [label="{\<\<entity\>\>\ngovernance_framework|thing_type\ldescription\lcommittee_charter\lconflict_policy\l|}", style=filled, fillcolor="#90EE90", color="#228B22"];
+
+    // Descriptions
+  committee_type [label="{\<\<description\>\>\ncommittee_type|catalog_info\lmember_requirements\l|}", style=filled, fillcolor="#ADD8E6", color="#4169E1"];
+
+    // Services
+
+    // Aggregates
+    governance_agg_invariants [label="governance_agg invariants:\l• Quorum required for methodology changes\l", shape=note, style=filled, fillcolor="#FFFACD", fontsize=8];
+    governance_agg_invariants -> governance_framework [style=dotted, arrowhead=none];
+  }
+
+  subgraph cluster_ctx_distribution {
+    label="Index Distribution\n[Licensing and data distribution]";
+    fontsize=14;
+    fontname="Helvetica-Bold";
+    style="rounded,filled";
+    color="#2E8B57";
+    bgcolor="#F0FFF0";
+    penwidth=2;
+
+    // Moment-Intervals
+  license_agreement [label="{\<\<moment-interval\>\>\nlicense_agreement|tracked_for\lstart_date\lend_date\lfee_structure\lfee_rate\l|}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+  data_distribution [label="{\<\<moment-interval\>\>\ndata_distribution|tracked_for\ldistribution_time\ldata_type\lformat\l|}", style=filled, fillcolor="#FFB6C1", color="#FF1493"];
+
+    // Roles
+  licensee [label="{\<\<role\>\>\nlicensee|role_context\ldescription\llicense_type\laum_tracked\l|report_usage()\l}", style=filled, fillcolor="#FFFF99", color="#FFD700"];
+  data_vendor [label="{\<\<role\>\>\ndata_vendor|role_context\ldescription\ldistribution_channels\l|distribute_data()\l}", style=filled, fillcolor="#FFFF99", color="#FFD700"];
+
+    // Entities
+  etf_provider [label="{\<\<entity\>\>\netf_provider|description\lproducts_offered\l|}", style=filled, fillcolor="#90EE90", color="#228B22"];
+  derivative_exchange [label="{\<\<entity\>\>\nderivative_exchange|description\lcontract_specs\l|}", style=filled, fillcolor="#90EE90", color="#228B22"];
+
+    // Descriptions
+  license_model [label="{\<\<description\>\>\nlicense_model|catalog_info\lfee_calculation\lminimum_fee\l|}", style=filled, fillcolor="#ADD8E6", color="#4169E1"];
+
+    // Services
+
+    // Aggregates
+  }
+
+  // Relationships
+  index -> index_type [label="«instanceOf»", style=dashed, arrowhead=empty];
+  security -> security_classification [label="«instanceOf»", style=dashed, arrowhead=empty];
+  index_methodology -> weighting_methodology [label="«instanceOf»", style=dashed, arrowhead=empty];
+  fund_manager -> committee_type [label="«instanceOf»", style=dashed, arrowhead=empty];
+  etf_provider -> license_model [label="«instanceOf»", style=dashed, arrowhead=empty];
+  security -> index_constituent [label="«implements»", style=dashed, arrowhead=empty];
+  security -> universe_member [label="«implements»", style=dashed, arrowhead=empty];
+  fund_manager -> committee_member [label="«implements»", style=dashed, arrowhead=empty];
+  fund_manager -> index_administrator [label="«implements»", style=dashed, arrowhead=empty];
+  etf_provider -> licensee [label="«implements»", style=dashed, arrowhead=empty];
+  derivative_exchange -> licensee [label="«implements»", style=dashed, arrowhead=empty];
+  etf_provider -> data_vendor [label="«implements»", style=dashed, arrowhead=empty];
+  index_constituent -> rebalancing [label="handles", arrowhead=vee];
+  index_constituent -> index_calculation [label="handles", arrowhead=vee];
+  universe_member -> rebalancing [label="handles", arrowhead=vee];
+  committee_member -> governance_review [label="handles", arrowhead=vee];
+  index_administrator -> methodology_change [label="handles", arrowhead=vee];
+  licensee -> license_agreement [label="handles", arrowhead=vee];
+  data_vendor -> data_distribution [label="handles", arrowhead=vee];
+  governance_review -> methodology_change [label="generates", style=dashed, arrowhead=vee];
+  governance_review -> rebalancing [label="Customer/Supplier", style=solid, ltail=cluster_ctx_governance, lhead=cluster_ctx_index_design];
+  rebalancing -> license_agreement [label="Customer/Supplier", style=solid, ltail=cluster_ctx_index_design, lhead=cluster_ctx_distribution];
+}
