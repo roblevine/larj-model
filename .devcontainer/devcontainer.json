@@ -25,5 +25,6 @@
 
 	"appPort": ["2204:22"],
 	"postCreateCommand": "sh .devcontainer/installation.sh",
+	"postStartCommand": "sh -c 'if [ \"${SSH_AUTOSTART_ON_DEVCONTAINER_START:-false}\" = \"true\" ]; then sudo service ssh start; fi'",
 	"remoteUser": "vscode"
 }
